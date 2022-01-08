@@ -1,0 +1,11 @@
+citHeader("To cite ascifit in publications use:")
+
+citEntry(
+  entry    = "shrotriya2022asci",
+  title    = "ASCI: Adversarial Sign Corrupted Isotonic Regression",
+  author   = "Matey Neykov and Shamindra Shrotriya",
+  year     = "2022",
+  journal  = "ArXiv e-prints",
+  note     = "R package version 0.0.1",
+  textVersion = "M. Neykov, S. Shrotriya. ASCI: Adversarial Sign Corrupted Isotonic Regression."
+)

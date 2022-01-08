@@ -1,0 +1,46 @@
+name: cb01
+channels:
+  - conda-forge
+  - defaults
+  - pytorch
+dependencies:
+  - python=3.9.6
+  - sage
+  - pip
+  - pip:
+      - altair
+      - autopep8
+      - black
+      - cython
+      - environment-kernels
+      - flake8
+      - ipykernel
+      - ipython
+      - ipywidgets
+      - jax
+      - jupyter
+      - jupyterlab
+      - jupyter_contrib_nbextensions
+      - matplotlib
+      - nose
+      - nose-timer
+      - notebook
+      - numpy
+      - pandas
+      - pillow
+      - plotly
+      - pyshp
+      - pytest
+      - rich
+      - rich[jupyter]
+      - scikit-learn
+      - scipy
+      - seaborn
+      - shapely
+      - statsmodels
+      - streamlit
+      - streamlit-folium
+      - torch
+      - vega
+      - vega_datasets
+      - yapf
