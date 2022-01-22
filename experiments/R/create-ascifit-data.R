@@ -4,8 +4,12 @@ devtools::load_all()
 set.seed(32546)
 
 # Define key functions ---------------------------------------------------------
+# TODO: Move these functions into the main R package once we update them with
+# roxygen documentation
+
 #' A smooth monotonic univariate \code{sin} function
-#' This is based on the paper \url{https://projecteuclid.org/download/pdfview_1/euclid.ejs/1580871776}
+#' This is based on the paper
+#' \url{https://projecteuclid.org/download/pdfview_1/euclid.ejs/1580871776}
 #'
 #' @param t: (double) a real number on which the function is defined
 #'
@@ -15,12 +19,18 @@ fnmon_smooth <- function(t){
   base::return(t + base::sin(4 * pi * t)/16)
 }
 
+
+# Create ascifit simulation data and run ascifit -------------------------------
+# Define key ascifit simulation data parameters
 n_tot <- 500
 norm_mean <- 0
 norm_sigma <- 1 # Standard deviation, not variance
 eta <- 0.1
 p <- 0.5 # sign-flip - Rademacher(p), so +1 with prob p and -1 with prob (1 - p)
 
+# Create ascifit simulation data ----
+# This data is normalized on the x-axis over the unit interval for display
+# convenience.
 sim_df <- base::seq(from = 1, to = n_tot, by = 1) %>%
   tibble::enframe(x = ., name = NULL, value = "n") %>%
   dplyr::mutate(.data = .,
@@ -32,25 +42,52 @@ sim_df <- base::seq(from = 1, to = n_tot, by = 1) %>%
                                      mean = norm_mean,
                                      sd = norm_sigma),
                 xi_i = sample(x = c(-1, 1),
-                             size = n_tot,
-                             replace = TRUE,
-                             prob = c(p, 1 - p)),
+                              size = n_tot,
+                              replace = TRUE,
+                              prob = c(p, 1 - p)),
                 y_i = mu_i_eta + eps_i,
-                r_i = xi_i * y_i)
+                r_i = xi_i * y_i,
+                t_i = base::abs(r_i))
 
+# Run pava on the original data, i.e., on the y_i
+# TODO: remove this later when we fit ascifit on the
 pava_fit <- stats::isoreg(x = sim_df$x_i, y = sim_df$y_i)
 
+# Estimate (mu, sigma) using ASCIFIT --------------------------------------
 # TODO: Write the 3 ascifit steps here
-# asci_fit_step1 <- stats::isoreg(x = sim_df$x_i, y = base::abs(sim_df$r_i))
 
-sim_df   <- sim_df %>%
+# ASCIFIT Step 1: fit pava on t_i := abs(r_i) terms.
+# Get the t_i values
+# t_i <- sim_df$t_i
+
+# Fit pava on the t_i values to obtain t_hat_i
+# These are the t_hat_i values on the pre-processed data
+# t_hat_i_pre <- stats::isoreg(x = sim_df$x_i, y = sim_df$t_i)
+
+# ASCIFIT Step 2: solve sigma satisfying the given expression
+# Get the target value of the equation,
+# i.e. `\frac{1}{n} \sum_{i = 1}^{n} T_{i}^{2}`
+# sig_tgt <- mean((t_i)^2)
+
+# TODO: Add code to solve for sigma_hat
+# I believe we need to use stats::uniroot to do this efficiently
+
+# ASCIFIT Step 3: Once sigma_hat is found correct $\hat \absresp_{i}$
+# These are the t_hat_i values on the post-processed data
+# t_hat_i_post <- TODO: Add code here
+
+# Append the ASCIFIT estimates onto the data
+# TODO: The ascifit estimates need to be included here, once we estimate
+# them above
+sim_df <- sim_df %>%
   dplyr::mutate(.data = .,
                 pava_fit_i = pava_fit$yf)
 
+# Plot the simulated results ---------------------------------------------------
 sim_plt <- sim_df %>%
   dplyr::select(-eps_i) %>%
   tidyr::pivot_longer(data = .,
-                      cols = -c("n", "x_i", "mu_i", "xi_i"),
+                      cols = -c("n", "x_i", "mu_i", "xi_i", "t_i"),
                       names_to = c("y_type")) %>%
   dplyr::mutate(y_type = base::as.factor(y_type)) %>%
   ggplot2::ggplot(data = .,
@@ -70,5 +107,8 @@ sim_plt <- sim_df %>%
 sim_plt
 
 
-# TODO: Check why doesn't isotone::gpava work above?
+# TODO: Checklist
+# 1. Check why doesn't isotone::gpava work above?
 # pava_fit <- isotone::gpava(z = sim_df$y_i, y = sim_df$x_i, ties = "primary")
+
+# 2. Why does
