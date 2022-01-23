@@ -19,6 +19,43 @@ fnmon_smooth <- function(t){
   base::return(t + base::sin(4 * pi * t)/16)
 }
 
+#' Variance of a Folded Normal variable with parameters \eqn{(\mu, \sigma)}
+#'
+#' Let \eqn{X \sim N(\mu, \sigma)} be an __unfolded__ random variable with mean
+#' \eqn{(\mu)} and variance \eqn{(\sigma^{2})}. Then \eqn{T := |X|} is a
+#' __Folded Normal__ random variable with parameters \eqn{(\mu, \sigma)}. This
+#' function returns the mean of \eqn{T}, i.e.,
+#' \deqn{f(\mu, \sigma) := \mathbf{E}(T) = \sigma \sqrt{2 / \pi} \exp \left(-\mu^{2} /\left(2 \sigma^{2}\right)\right)-\mu(1-2 \Phi(\mu / \sigma))}
+#'
+#' @param mu : The mean parameter of the __unfolded__ Normal variable.
+#' @param sigma : The standard of the __unfolded__ Normal variable.
+#'
+#' @return The mean of the folded normal random variable.
+#' @export
+f_foldnorm_mean <- function(mu, sigma) {
+  out <- sigma * base::sqrt(2 / pi) * base::exp((-1 * mu^2) / (2 * sigma^2)) -
+    (mu * (1 - 2 * pnorm(q = (mu / sigma), mean = 0, sd = 1)))
+  base::return(out)
+}
+
+#' Variance of a Folded Normal variable with parameters \eqn{(\mu, \sigma)}
+#'
+#' Let \eqn{X \sim N(\mu, \sigma)} be an __unfolded__ random variable with mean
+#' \eqn{(\mu)} and variance \eqn{(\sigma^{2})}. Then \eqn{T := |X|} is a
+#' __Folded Normal__ random variable with parameters \eqn{(\mu, \sigma)}. This
+#' function returns the variance of \eqn{T}, i.e.,
+#' \deqn{g(\mu, \sigma) := \mathbf{V}(T) = \mu^{2} + \sigma^{2} - (f(\mu, \sigma))^{2}},
+#' where \eqn{f(\mu, \sigma) := \mathbf{E}(T)}, is the mean of the same folded
+#' normal variable.
+#'
+#' @param mu : The mean parameter of the __unfolded__ Normal variable.
+#' @param sigma : The standard of the __unfolded__ Normal variable.
+#'
+#' @return The variance of the folded normal random variable.
+#' @export
+g_foldnorm_var <- function(mu, sigma) {
+  base::return(mu^2 + sigma^2 - (f_foldnorm_mean(mu = mu, sigma = sigma))^2)
+}
 
 # Create ascifit simulation data and run ascifit -------------------------------
 # Define key ascifit simulation data parameters
@@ -106,9 +143,23 @@ sim_plt <- sim_df %>%
   ggplot2::theme(legend.title = ggplot2::element_blank())
 sim_plt
 
-
 # TODO: Checklist
 # 1. Check why doesn't isotone::gpava work above?
 # pava_fit <- isotone::gpava(z = sim_df$y_i, y = sim_df$x_i, ties = "primary")
 
 # 2. Why does
+
+# Unit tests --------------------------------------------------------------
+
+# Tests: f_foldnorm_mean
+# mu values
+mu_vals <- seq(0, 10, 0.1)
+
+# Unit test 1: # All f(mu, 1) - mu >= 0, fixing sigma = 1
+all(f_foldnorm_mean(mu = mu_vals, sigma = 1.5) - mu_vals >= 0)
+
+# Unit test 1: Check f(0, 1) = sqrt(2 / pi)
+f_foldnorm_mean(mu = 0, sigma = 1) - sqrt(2 / pi) == 0
+
+# Tests: f_foldnorm_var
+
