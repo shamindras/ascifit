@@ -149,7 +149,8 @@ sim_plt
 
 # 2. Why does
 
-# Unit tests --------------------------------------------------------------
+# Unit tests -------------------------------------------------------------------
+# TODO: Move these unit tests into the main R package once we finalize them.
 
 # Tests: f_foldnorm_mean
 # mu values
@@ -162,4 +163,4 @@ all(f_foldnorm_mean(mu = mu_vals, sigma = 1.5) - mu_vals >= 0)
 f_foldnorm_mean(mu = 0, sigma = 1) - sqrt(2 / pi) == 0
 
 # Tests: f_foldnorm_var
-
+g_foldnorm_var(mu = 0, sigma = 1) - (1 - 2 / pi) == 0
