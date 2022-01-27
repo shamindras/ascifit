@@ -80,30 +80,21 @@ gen_asci_data_type1 <- function(n, p, eta, sigma){
 
 ascifit_wrapper <- function(gen_asci_data, eta){
   R_vals <- gen_asci_data$r_i
-  out_list <- ascifit(R, eta = eta)
+  out_list <- ascifit(R_vals = R_vals, eta = eta)
   base::return(out_list)
 }
 
-# Test Wrapper ------------------------------------------------------------
-# Set seed
-set.seed(10747457)
-asci_data <- gen_asci_data_type1(n = exp_n,
-                                 p = exp_p,
-                                 eta = exp_eta,
-                                 sigma = exp_sigma)
-out_ascifit <- ascifit_wrapper(gen_asci_data = asci_data, eta = exp_eta)
-plot(asci_data$r_i)
-points(out_ascifit$mu_hat, col = "blue")
-points(asci_data$mu_i_eta, col = "red")
-dev.off()
+mse <- function(estimate, actual){
+  base::return(mean((estimate - actual)**2))
+}
 
 # Generate ASCI grid -------------------------------------------------------------
 # Define grid parameter value ranges
-exp_n <- base::seq(from = 50, to = 100, by = 50)
+exp_n <- base::seq(from = 50, to = 200, by = 50)
 exp_sigma <- base::seq(from = 0.5, to = 1, by = 0.5)
 exp_eta <- 1/5
 exp_p <- base::seq(from = 0.25, to = 0.75, by = 0.5)
-exp_reps <- 1:5
+exp_reps <- 1:20
 
 # Generate the ASCI parameter grid
 asci_grid <- tidyr::crossing(n = exp_n,
@@ -119,9 +110,7 @@ length(exp_n) * length(exp_sigma) * length(exp_eta) * length(exp_p) *
   length(exp_reps) - base::nrow(asci_grid)
 
 # Run ASCIFIT over the grid
-out1 <- asci_grid %>%
-  # dplyr::select(-sim_no, -reps) %>%
-  # dplyr::mutate(asci_data = purrr::pmap(.l = ., .f = gen_asci_data_type1),
+out_ascifit1 <- asci_grid %>%
   dplyr::mutate(asci_data = purrr::pmap(.l = list(.data[["n"]],
                                                   .data[["sigma"]],
                                                   .data[["eta"]],
@@ -129,7 +118,49 @@ out1 <- asci_grid %>%
                 ascifit = purrr::map2(.x = .data[["asci_data"]],
                                       .y = .data[["eta"]],
                                       .f = ~ascifit_wrapper(gen_asci_data = .x,
-                                                            eta = .y)),
-                mu_hat_inv = purrr::map(.x = .data[["ascifit"]], .f = ~.x$mu_hat_inv),
+                                                            eta = .y)))
+out_ascifit2 <- out_ascifit1 %>%
+  dplyr::mutate(mu_hat_inv = purrr::map(.x = .data[["ascifit"]], .f = ~.x$mu_hat_inv),
                 sigma_hat = purrr::map(.x = .data[["ascifit"]], .f = ~.x$sigma_hat),
-                mu_hat = purrr::map(.x = .data[["ascifit"]], .f = ~.x$mu_hat))
+                mu_hat = purrr::map(.x = .data[["ascifit"]], .f = ~.x$mu_hat),
+                mu = purrr::map(.x = .data[["asci_data"]], .f = ~.x$mu_i_eta),
+                mse = purrr::map2_dbl(.x = .data[["mu_hat"]], .y = .data[["mu"]],
+                                  .f = ~mse(estimate = .x, actual = .y)))
+out_ascifit2$mse
+
+# Plot the data
+out_ascifit2_mse <- out_ascifit2 %>%
+  dplyr::select(n, eta, p, sigma, mse) %>%
+  # dplyr::filter(eta == 1/5, p == 0.25, sigma == 1) %>%
+  dplyr::filter(eta == 1/5, p == 0.25) %>%
+  group_by(n, sigma) %>%
+  dplyr::summarize(mean_mse = base::mean(mse),
+                   sd_mse = stats::sd(mse)) %>%
+  dplyr::mutate(se_mse = sd_mse/base::sqrt(n),
+                sigma = as.factor(sigma),
+                n = as.factor(n))
+
+# The errorbars overlapped, so use position_dodge to move them horizontally
+pd <- ggplot2::position_dodge(0.1) # move them .05 to the left and right
+
+out_ascifit2_mse %>%
+ggplot2::ggplot(data = ., ggplot2::aes(x = n, y = mean_mse, color = sigma)) +
+  ggplot2::geom_errorbar(ggplot2::aes(ymin = mean_mse - 2*se_mse,
+                                      ymax = mean_mse + 2*se_mse), width = .1,
+                         position = pd) +
+  ggplot2::geom_line(position=pd) +
+  ggplot2::geom_point(position=pd, size=3, shape=21, fill="white") + # 21 is filled circle
+  ggplot2::labs(title = "Mean MSE for estimating mu using ASCIFIT",
+                x = "Sample size (n)",
+                y = latex2exp::TeX("Sample Mean-MSE $\\| \\hat{\\mu} - mu \\|^{2}$")) +
+  ggplot2::theme_bw() +
+  ggplot2::theme(legend.justification=c(1,0),
+        legend.position=c(1,0))               # Position legend in bottom right
+
+
+out_ascifit3 <- out_ascifit2 %>%
+  dplyr::filter(eta == 1/5, p == 0.25, sigma == 1, reps == 1, n == 200)
+
+out_ascifit3$asci_data
+out_ascifit3$ascifit
+

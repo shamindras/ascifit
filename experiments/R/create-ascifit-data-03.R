@@ -36,3 +36,17 @@ dev.off()
 # Calculate MSE -----------------------------------------------------------
 mean((mu - test$mu_hat)**2)
 exp_sigma - test$sigma_hat
+
+# Test Wrapper ------------------------------------------------------------
+# TODO: This needs to be changed to match the new wrapper parameter formats
+# Set seed
+set.seed(10747457)
+asci_data <- gen_asci_data_type1(n = exp_n,
+                                 p = exp_p,
+                                 eta = exp_eta,
+                                 sigma = exp_sigma)
+out_ascifit <- ascifit_wrapper(gen_asci_data = asci_data, eta = exp_eta)
+plot(asci_data$r_i)
+points(out_ascifit$mu_hat, col = "blue")
+points(asci_data$mu_i_eta, col = "red")
+dev.off()
