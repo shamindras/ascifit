@@ -21,4 +21,6 @@ Imports:
     ggplot2,
     magrittr,
     rlang (>= 0.4.11),
-    latex2exp
+    latex2exp,
+    glue,
+    scales
