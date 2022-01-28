@@ -78,8 +78,8 @@ cowplot::ggsave2(filename = here::here("experiments", "R",
 # Plot the simulated results ---------------------------------------------------
 plt_eta <- 0.2
 plt_p <- 0.5
-plt_sigma <- 2
-plt_reps <- 40
+plt_sigma <- 1.5
+plt_reps <- 33
 plt_n <- 1000
 out_ascifit3 <- out_ascifit2 %>%
   dplyr::filter(eta == plt_eta, p == plt_p, sigma == plt_sigma,
@@ -93,7 +93,7 @@ out_ascifit3 %>%
 sim_plt <- out_ascifit3 %>%
   dplyr::pull(ascifit_comb) %>%
   .[[1]] %>%
-  dplyr::select(-eps_i, -mu_hat_inv_i) %>%
+  dplyr::select(-eps_i) %>% # -mu_hat_inv_i
   tidyr::pivot_longer(data = .,
                       cols = -c("x_i", "xi_i", "t_i"),
                       names_to = c("y_type")) %>%
@@ -106,9 +106,10 @@ sim_plt <- out_ascifit3 %>%
   # ggthemes::theme_economist() +
   ggthemes::theme_igray() +
   ggplot2::scale_color_hue(labels = c(latex2exp::TeX("$\\hat{\\mu}$"),
+                                      latex2exp::TeX("$\\hat{\\mu}_{naive}$"),
                                       latex2exp::TeX("$\\mu$"),
-                                      latex2exp::TeX("$R_{i}$"),
-                                      latex2exp::TeX("$Y_{i}$"))) +
+                                      latex2exp::TeX("$R$"),
+                                      latex2exp::TeX("$Y$"))) +
   ggplot2::labs(
     title = "Plot of true values, response, and ASCIFIT",
     x = "x",
