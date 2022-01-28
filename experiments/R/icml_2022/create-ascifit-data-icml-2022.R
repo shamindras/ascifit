@@ -104,10 +104,10 @@ set.seed(4265436)
 # Generate ASCI grid -------------------------------------------------------------
 # Define grid parameter value ranges
 exp_n <- c(100L, 250L, 500L, 1000L)
-exp_sigma <- base::seq(from = 0.5, to = 3, by = 0.5)
+exp_sigma <- base::seq(from = 0.5, to = 2, by = 0.5)
 exp_eta <- 1/5
 exp_p <- 0.5
-exp_reps <- 1:100
+exp_reps <- 1:50
 # Get total number of sims. Useful for printing
 tot_sims <- length(exp_n) * length(exp_sigma) * length(exp_eta) * length(exp_p) * length(exp_reps)
 
@@ -144,5 +144,5 @@ out_ascifit1 <- asci_grid %>%
 
 # Write out the tibble to local directory
 readr::write_rds(x = out_ascifit1,
-                 file = here::here("experiments", "R", "out_ascifit1.rds"),
+                 file = here::here("experiments", "R", "out_ascifit1_50_reps.rds"),
                  compress = "xz", compression = 9L)
