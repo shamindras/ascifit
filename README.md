@@ -11,13 +11,13 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 <!-- badges: end -->
 
 The goal of `ascifit` is to have a set of common utilities to reproduce
-results from the paper *ASCI: Adversarial Sign Corrupted Isotonic
-Regression* by Matey Neykov and Shamindra Shrotriya.
+results from the paper *Adversarial Sign Corrupted Isotonic Regression*
+by Shamindra Shrotriya and Matey Neykov.
 
 The `ascifit` package is developed and maintained by
 
--   [Matey Neykov](https://mateyneykov.com/)
 -   [Shamindra Shrotriya](https://www.shamindras.com/)
+-   [Matey Neykov](https://mateyneykov.com/)
 
 ## Citation
 
@@ -32,8 +32,8 @@ Alternatively, please use the following `BibTeX` citation:
 
 ``` bibtex
 @misc{shrotriya2022asci,
-  title  = {{ASCI}: {A}dversarial {S}ign {C}orrupted {I}sotonic {R}egression},
-  author = {Matey Neykov and Shamindra Shrotriya},
+  title  = {{A}dversarial {S}ign-{C}orrupted {I}sotonic {R}egression},
+  author = {Shamindra Shrotriya and Matey Neykov},
   year   = {2022},
   eprint = {arXiv:},
   note   = {R package version 0.0.1}
