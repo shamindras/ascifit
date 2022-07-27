@@ -14,7 +14,6 @@ mse <- function(estimate, actual){
 set.seed(523525)
 
 # Read out_ascifit1 data
-# TODO: Change to the correct file for final check
 out_ascifit1_r <- readr::read_rds(file = here::here("experiments", "R", "out_ascifit1_50_reps.rds"))
 # out_ascifit1_r <- readr::read_rds(file = here::here("experiments", "R", "out_ascifit1.rds"))
 
