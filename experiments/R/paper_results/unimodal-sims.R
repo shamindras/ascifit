@@ -1,33 +1,54 @@
 # Load libraries
 # devtools::load_all()
 # devtools::document()
-# library(fAsianOptions) # needed for the fAsianOptions::erf function
+
+# General upcoming TODOs --------------------------------------------------
+# TODO: Write all functions using Roxygen2 documentation.
+# TODO: Rely on devtools to load all libraries directly, rather than the manual
+#       package installation as below.
+
+# Install packages (once off) ---------------------------------------------
+# Just uncomment the lines below and run once to install all relevant packages
+# install.packages("pak")
+REQ_PKGS <- c("tidyverse","here","scales","ggthemes")
+pak::pkg_install(pkg = REQ_PKGS)
+
+# Load key packages -------------------------------------------------------
 library(tidyverse)
 library(here)
 library(scales)
 library(ggthemes)
+# NOTE: We previously needed the fAsianOptions package for the
+# fAsianOptions::erf function. The fAsianOptions package no longer loads for
+# R >= 4.2.1. We will rewrite the erf function manually, and use that below.
+# library(fAsianOptions)
 
-# Function to produce MSE
+
+# Define helper functions -------------------------------------------------
+# A vectorized implementation of the MSE between two (same length) vectors
+# TODO: Should assert that the vectors are numeric and of the same length.
 mse <- function(estimate, actual) {
-  base::return(mean((estimate - actual)**2))
+  return(mean((estimate - actual)**2))
 }
 
-# Need to write the erf explicitly, since we can't load fAsianOptions::erf
-# on R version 4.2.1+
+# An implementation of the erf function
 erf <- function(x) {
-  2 * pnorm(x * sqrt(2)) - 1
+  return(2 * pnorm(x * sqrt(2)) - 1)
 }
 
+# An ASCIFIT utility function to invert mean from the folded normal to the
+# non-absolute scale.
 inverse_mean_sigma <- function(f, sigma, lower = 0, upper = 10000) {
   function(y) uniroot((function(x) f(x, sigma) - y), lower = lower, upper = upper)[1]
 }
 
-# this function is the same as the one below
+# An ASCIFIT utility function to calculate the mean value
 mean_theta_sigma <- function(theta, sigma) {
   x <- ((theta / sigma)**2 / 2)
-  base::return((sqrt(pi) * sqrt(x) * erf(sqrt(x)) + exp(-x)) * sqrt(2 / pi) * sigma)
+  return((sqrt(pi) * sqrt(x) * erf(sqrt(x)) + exp(-x)) * sqrt(2 / pi) * sigma)
 }
 
+# The core ASCIFIT function for ASCI regression.
 ascifit <- function(R_vals, eta) {
   # ASCIFIT Step 1: Pre-processing and PAVA
   theta1 <- isoreg(abs(R_vals))$yf
@@ -63,10 +84,11 @@ ascifit <- function(R_vals, eta) {
     "mu_hat" = theta2,
     "sigma_hat" = sigma
   )
-  base::return(out_list)
+  return(out_list)
 }
 
-# Wrapper - generate ASCI data --------------------------------------------
+# Wrapper functions for ASCIFIT over a GRID -------------------------------
+# |- Generate ASCI data ----
 gen_asci_data_type1 <- function(tot_sims, sim_no, n, p, eta, sigma) {
   print(glue::glue("Simulation {sim_no} of {tot_sims}: Progress {scales::percent(sim_no/tot_sims)}\\n"))
   # Rademacher(p) contamination
@@ -96,38 +118,46 @@ gen_asci_data_type1 <- function(tot_sims, sim_no, n, p, eta, sigma) {
   # # Load the ASCI generated data, and eta values into a list
   # out_list <- list("asci_gen_data" = asci_gen_data,
   #                  "eta" = exp_eta)
-  base::return(asci_gen_data)
+  return(asci_gen_data)
 }
 
+# |- Run ASCIFIT for a single instance of generated data ----
 ascifit_wrapper <- function(gen_asci_data, eta) {
   R_vals <- gen_asci_data$r_i
   out_list <- ascifit(R_vals = R_vals, eta = eta)
-  base::return(out_list)
+  return(out_list)
 }
 
+# |- A function to extract for a specicied fitted ASCIFIT output ----
 asci_data_wrapper <- function(asci_data_out, ascifit_out) {
   out_comb_data <- asci_data_out %>%
     dplyr::mutate(
       mu_hat_inv_i = ascifit_out$mu_hat_inv,
       mu_hat_i = ascifit_out$mu_hat
     )
-  base::return(out_comb_data)
+  return(out_comb_data)
 }
 
+
+# Run ASCIFIT for given parameters ----------------------------------------
 # Set seed for reproducibility
 set.seed(551243)
 
-# Generate ASCI grid -------------------------------------------------------------
-# Define grid parameter value ranges
+# |- Define ASCI grid parameter value ranges ----
+# Here we have a SINGLE instance of ASCI parameter values
 exp_n <- c(1000L)
 exp_sigma <- c(1.5)
 exp_eta <- 1 / 5
 exp_p <- 0.5
-exp_reps <- 1
-# Get total number of sims. Useful for printing
-tot_sims <- length(exp_n) * length(exp_sigma) * length(exp_eta) * length(exp_p) * length(exp_reps)
+exp_reps <- 1L
 
-# Generate the ASCI parameter grid
+# Get total number of sims. Useful for printing and checking
+# This should just be 1, since we are running over a SINGLE instance of
+# ASCI parameter grid values
+tot_sims <- length(exp_n) * length(exp_sigma) * length(exp_eta) * length(exp_p) * length(exp_reps)
+tot_sims
+
+# |- Generate ASCI grid ----
 asci_grid <- tidyr::crossing(
   n = exp_n,
   sigma = exp_sigma,
@@ -190,13 +220,16 @@ out_ascifit2 <- out_ascifit1 %>%
     )
   )
 
+# Plot the simulated results ----------------------------------------------
+# Set the ASCI parameter grid values we passed in earlier
+plt_n <- exp_n
+plt_sigma <- exp_sigma
+plt_eta <- exp_eta
+plt_p <- exp_p
+plt_reps <- exp_reps
 
-# Plot the simulated results ---------------------------------------------------
-plt_eta <- 1 / 5
-plt_p <- 0.5
-plt_sigma <- 1.5
-plt_reps <- 1
-plt_n <- 1000
+# Filter the ASCI parameter grid values we passed in earlier
+# The `out_ascifit3` tibble should just have one row
 out_ascifit3 <- out_ascifit2 %>%
   dplyr::filter(
     eta == plt_eta, p == plt_p, sigma == plt_sigma,
@@ -204,10 +237,7 @@ out_ascifit3 <- out_ascifit2 %>%
   )
 out_ascifit3
 
-out_ascifit3 %>%
-  dplyr::pull(ascifit_comb) %>%
-  .[[1]]
-
+# Plot the results as we did in the paper
 sim_plt <- out_ascifit3 %>%
   dplyr::pull(ascifit_comb) %>%
   .[[1]] %>%
