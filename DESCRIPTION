@@ -16,7 +16,6 @@ RoxygenNote: 7.1.2
 URL: https://github.com/shamindras/ascifit
 BugReports: https://github.com/shamindras/ascifit/issues
 Imports: 
-    fAsianOptions,
     dplyr,
     ggplot2,
     magrittr,

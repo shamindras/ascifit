@@ -1,3 +1,5 @@
+^renv$
+^renv\.lock$
 ^ascifit\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
