@@ -5,3 +5,4 @@
 .DS_Store
 docs
 experiments/python/notebooks/.ipynb_checkpoints/*
+.vscode
