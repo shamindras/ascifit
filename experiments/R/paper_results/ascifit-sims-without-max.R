@@ -63,6 +63,7 @@ ascifit <- function(R_vals, eta) {
 
   while (abs(M - subtract) > 1e-5) {
     theta1.maxed.eta <- sapply(theta1, function(el) max(el, mean_theta_sigma(eta, sigma)))
+    # theta1.maxed.eta <- sapply(theta1, function(el) el)
     inv <- Vectorize(inverse_mean_sigma(mean_theta_sigma, sigma = sigma, lower = 0))
     subtract <- mean(unlist(inv(theta1.maxed.eta))**2) + sigma**2
 
@@ -76,7 +77,8 @@ ascifit <- function(R_vals, eta) {
 
   # ASCIFIT Step 3: Post-processing via plug-in
   # Use sigma_hat plug_in and invert for mu_hat
-  theta1.maxed.eta <- sapply(theta1, function(el) max(el, mean_theta_sigma(eta, sigma)))
+  # theta1.maxed.eta <- sapply(theta1, function(el) max(el, mean_theta_sigma(eta, sigma)))
+  theta1.maxed.eta <- sapply(theta1, function(el) el)
   inv <- Vectorize(inverse_mean_sigma(mean_theta_sigma, sigma = sigma, lower = 0))
   theta2 <- unlist(inv(theta1.maxed.eta))
   out_list <- list(
