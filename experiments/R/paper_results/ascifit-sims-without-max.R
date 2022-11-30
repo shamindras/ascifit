@@ -62,8 +62,8 @@ ascifit <- function(R_vals, eta) {
   sigma <- (L + R) / 2
 
   while (abs(M - subtract) > 1e-5) {
-    # theta1.maxed.eta <- sapply(theta1, function(el) max(el, mean_theta_sigma(eta, sigma)))
-    theta1.maxed.eta <- sapply(theta1, function(el) el)
+    theta1.maxed.eta <- sapply(theta1, function(el) max(el, mean_theta_sigma(eta, sigma)))
+    # theta1.maxed.eta <- sapply(theta1, function(el) el)
     inv <- Vectorize(inverse_mean_sigma(mean_theta_sigma, sigma = sigma, lower = 0))
     subtract <- mean(unlist(inv(theta1.maxed.eta))**2) + sigma**2
 
